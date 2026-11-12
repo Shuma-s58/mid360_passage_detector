@@ -31,14 +31,11 @@ def quaternion_rot(q):
 
 
 def cloud_xyz(msg):
-    # Humble sensor_msgs_py returns a structured array for read_points_numpy.
-    try:
-        a = point_cloud2.read_points_numpy(msg, field_names=('x','y','z'), skip_nans=True)
-        return np.asarray(a, dtype=np.float64).reshape((-1, 3))
-    except (AttributeError, TypeError, ValueError):
-        return np.array(list(point_cloud2.read_points(
-            msg, field_names=('x','y','z'), skip_nans=True)),
-            dtype=np.float64).reshape((-1, 3))
+    pts = point_cloud2.read_points(
+        msg, field_names=('x', 'y', 'z'), skip_nans=True)
+    if len(pts) == 0:
+        return np.empty((0, 3), dtype=np.float64)
+    return np.column_stack((pts['x'], pts['y'], pts['z'])).astype(np.float64)
 
 
 def cluster_indices(xyz, radius, min_size, max_size):
